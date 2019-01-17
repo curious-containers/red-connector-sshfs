@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "red-connector-sshfs"
+version = "0.1"
+authors = ["Christoph Jansen <Christoph.Jansen@htw-berlin.de>"]
+license = "AGPL-3.0"
+readme = "README.md"
+repository = "https://github.com/curious-containers/red-connector-sshfs"
+homepage = "https://curious-containers.github.io/"
+description = "RED Connector SSHFS is part of the Curious Containers project."
+
+[tool.poetry.dependencies]
+python = "^3.4"
+
+[tool.poetry.dev-dependencies]
+
+[tool.poetry.scripts]
