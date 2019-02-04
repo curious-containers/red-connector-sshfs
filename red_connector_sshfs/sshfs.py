@@ -82,3 +82,15 @@ class Sshfs:
                 raise Exception(str(e))
         if ('password' not in access) and ('privateKey' not in access):
             raise Exception('At least "password" or "privateKey" must be present.')
+
+    @staticmethod
+    def receive_directory_cleanup(internal):
+        """
+        Unmounts and removes the directory given in internal.
+
+        :param internal: A dictionary containing information about where to unmount a directory.
+        """
+        path = internal.get('path')
+        if path:
+            call(['fusermount3', '-u', path])
+            os.removedirs(path)
