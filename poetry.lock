@@ -1,7 +1,14 @@
-package = []
+[[package]]
+category = "main"
+description = "An implementation of JSON Schema validation for Python"
+name = "jsonschema"
+optional = false
+python-versions = "*"
+version = "2.6.0"
 
 [metadata]
-content-hash = "7ba5937a13359cece2ea91521dd10c13fb5e097b75e8a55458fc9d5570ab67b7"
+content-hash = "171bcb8748ad30681554af9f7e6d07165f58000bf5263f83682c873b52041208"
 python-versions = "^3.4"
 
 [metadata.hashes]
+jsonschema = ["000e68abd33c972a5248544925a0cae7d1125f9bf6c58280d37546b946769a08", "6ff5f3180870836cae40f06fa10419f557208175f13ad7bc26caa77beb1f6e02"]
