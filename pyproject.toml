@@ -10,6 +10,7 @@ description = "RED Connector SSHFS is part of the Curious Containers project."
 
 [tool.poetry.dependencies]
 python = "^3.4"
+jsonschema = "^2.6"
 
 [tool.poetry.dev-dependencies]
 
