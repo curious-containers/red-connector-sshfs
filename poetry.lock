@@ -1,5 +1,13 @@
 [[package]]
 category = "main"
+description = "CC Connector CLI is part of the Curious Containers project."
+name = "cc-connector-cli"
+optional = false
+python-versions = ">=3.4,<4.0"
+version = "0.2"
+
+[[package]]
+category = "main"
 description = "An implementation of JSON Schema validation for Python"
 name = "jsonschema"
 optional = false
@@ -7,8 +15,9 @@ python-versions = "*"
 version = "2.6.0"
 
 [metadata]
-content-hash = "171bcb8748ad30681554af9f7e6d07165f58000bf5263f83682c873b52041208"
+content-hash = "30bc65d88220ad30b3faaba5aede6bc33bcf9d9a6574c0533144fa194be0d78b"
 python-versions = "^3.4"
 
 [metadata.hashes]
+cc-connector-cli = ["037f39d597464e428ec8c2f799c750648b048c6cd3497a374e9ed6f1eeba6955", "af01059c4014fbfb6a6e61b7234d12a4ea695e7d44e7c28273db4e727d58757c"]
 jsonschema = ["000e68abd33c972a5248544925a0cae7d1125f9bf6c58280d37546b946769a08", "6ff5f3180870836cae40f06fa10419f557208175f13ad7bc26caa77beb1f6e02"]
