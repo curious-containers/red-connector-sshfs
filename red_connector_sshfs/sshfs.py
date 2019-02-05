@@ -90,7 +90,6 @@ class Sshfs:
 
         :param internal: A dictionary containing information about where to unmount a directory.
         """
-        path = internal.get('path')
-        if path:
-            call(['fusermount3', '-u', path])
-            os.removedirs(path)
+        path = internal['path']
+        call(['fusermount3', '-u', path])
+        os.removedirs(path)
