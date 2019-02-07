@@ -1,5 +1,5 @@
 import os
-from subprocess import call
+import subprocess
 
 import jsonschema
 
@@ -69,7 +69,11 @@ class Sshfs:
             raise Exception('At least "password" or "privateKey" must be present.')
 
         os.mkdir(local_path)
-        call(' '.join(command), shell=True)
+
+        process_result = subprocess.run(' '.join(command), stderr=subprocess.PIPE, shell=True)
+        if process_result.returncode != 0:
+            raise Exception('Could not mount "{}" from "{}@{}:{}" using password and "sshfs":\n{}'
+                            .format(local_path, username, host, remote_path, process_result.stderr.decode('utf-8')))
 
     @staticmethod
     def receive_directory_validate(access):
@@ -91,7 +95,9 @@ class Sshfs:
         :param internal: A dictionary containing information about where to unmount a directory.
         """
         path = internal['path']
-        if call(['fusermount3', '-u', path]) == 0:
+        process_result = subprocess.run(['fusermount3', '-u', path], stderr=subprocess.PIPE)
+        if process_result.returncode == 0:
             os.rmdir(path)
         else:
-            raise Exception('Cleanup failed. Could not unmount "{}" with "fusermount3 -u"'.format(path))
+            raise Exception('Cleanup failed. Could not unmount "{}" with "fusermount3 -u":\n{}'
+                            .format(path, process_result.stderr))
