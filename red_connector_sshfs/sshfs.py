@@ -92,5 +92,7 @@ class Sshfs:
         """
         path = internal.get('path')
         if path:
-            call(['fusermount3', '-u', path])
-            os.removedirs(path)
+            if call(['fusermount3', '-u', path]) == 0:
+                os.rmdir(path)
+            else:
+                raise Exception('Cleanup failed. Could not unmount "{}" with "fusermount3 -u"'.format(path))
