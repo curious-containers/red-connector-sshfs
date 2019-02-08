@@ -1,5 +1,6 @@
 import os
 import subprocess
+from shutil import which
 
 import jsonschema
 
@@ -18,6 +19,8 @@ sshfs_access_schema = {
 
 
 DEFAULT_PORT = 22
+FUSERMOUNT_EXECUTABLES = ['fusermount', 'fusermount3']
+SSHFS_EXECUTABLES = ['sshfs']
 
 
 def _create_password_command(password, username, host, port, local_path, remote_path):
@@ -26,13 +29,38 @@ def _create_password_command(password, username, host, port, local_path, remote_
     provided information.
     echo '<password>' | sshfs <username>@<host>:<remote_path> <local_path> -o password_stdin -p <port>
     """
+    sshfs_executable, _ = _find_executables()
     remote_connection = '{username}@{host}:{remote_path}'.format(username=username, host=host, remote_path=remote_path)
     return [
         'echo', '\'{}\''.format(password), '|',
-        'sshfs', remote_connection, local_path,
+        sshfs_executable, remote_connection, local_path,
         '-o', 'password_stdin',
         '-p', str(port)
     ]
+
+
+def _find_executables():
+    sshfs_executable = None
+    for executable in SSHFS_EXECUTABLES:
+        if which(executable):
+            sshfs_executable = executable
+            break
+    if not sshfs_executable:
+        raise Exception('One of the following executables must be present in PATH: {}'.format(
+            SSHFS_EXECUTABLES
+        ))
+
+    fusermount_executable = None
+    for executable in FUSERMOUNT_EXECUTABLES:
+        if which(executable):
+            fusermount_executable = executable
+            break
+    if not fusermount_executable:
+        raise Exception('One of the following executables must be present in PATH: {}'.format(
+            FUSERMOUNT_EXECUTABLES
+        ))
+
+    return sshfs_executable, fusermount_executable
 
 
 class Sshfs:
@@ -87,6 +115,8 @@ class Sshfs:
         if ('password' not in access) and ('privateKey' not in access):
             raise Exception('At least "password" or "privateKey" must be present.')
 
+        _ = _find_executables()
+
     @staticmethod
     def receive_directory_cleanup(internal):
         """
@@ -95,9 +125,13 @@ class Sshfs:
         :param internal: A dictionary containing information about where to unmount a directory.
         """
         path = internal['path']
-        process_result = subprocess.run(['fusermount3', '-u', path], stderr=subprocess.PIPE)
+
+        _, fusermount_executable = _find_executables()
+
+        process_result = subprocess.run([fusermount_executable, '-u', path], stderr=subprocess.PIPE)
         if process_result.returncode == 0:
             os.rmdir(path)
         else:
-            raise Exception('Cleanup failed. Could not unmount "{}" with "fusermount3 -u":\n{}'
-                            .format(path, process_result.stderr))
+            raise Exception('Cleanup failed. Could not unmount "{}" with "{} -u":\n{}'.format(
+                fusermount_executable, path, process_result.stderr
+            ))
