@@ -19,7 +19,7 @@ sshfs_access_schema = {
 
 
 DEFAULT_PORT = 22
-FUSERMOUNT_EXECUTABLES = ['fusermount', 'fusermount3']
+FUSERMOUNT_EXECUTABLES = ['fusermount3', 'fusermount']
 SSHFS_EXECUTABLES = ['sshfs']
 
 
