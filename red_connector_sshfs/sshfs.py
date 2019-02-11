@@ -1,5 +1,6 @@
 import os
 import subprocess
+import tempfile
 from shutil import which
 
 import jsonschema
@@ -23,7 +24,7 @@ FUSERMOUNT_EXECUTABLES = ['fusermount3', 'fusermount']
 SSHFS_EXECUTABLES = ['sshfs']
 
 
-def _create_password_command(password, username, host, port, local_path, remote_path):
+def _create_password_command(username, host, port, local_path, remote_path, configfile_path):
     """
     Creates a command as string list, that can be executed to mount the <remote_path> to <local_path>, using the
     provided information.
@@ -32,9 +33,9 @@ def _create_password_command(password, username, host, port, local_path, remote_
     sshfs_executable, _ = _find_executables()
     remote_connection = '{username}@{host}:{remote_path}'.format(username=username, host=host, remote_path=remote_path)
     return [
-        'echo', '\'{}\''.format(password), '|',
         sshfs_executable, remote_connection, local_path,
         '-o', 'password_stdin',
+        '-F', configfile_path,
         '-p', str(port)
     ]
 
@@ -90,18 +91,26 @@ class Sshfs:
         private_key = access.get('privateKey')
 
         if password is not None:
-            command = _create_password_command(password, username, host, port, local_path, remote_path)
+            with tempfile.NamedTemporaryFile('w') as temp_configfile:
+                temp_configfile.write('StrictHostKeyChecking=no')
+                temp_configfile.flush()
+                command = _create_password_command(username, host, port, local_path, remote_path, temp_configfile.name)
+                command = ' '.join(command)
+
+                os.mkdir(local_path)
+
+                process_result = subprocess.run(command,
+                                                input=password.encode('utf-8'),
+                                                stderr=subprocess.PIPE,
+                                                shell=True)
+
+                if process_result.returncode != 0:
+                    raise Exception('Could not mount "{}" from "{}@{}:{}" using password and "sshfs":\n{}'
+                                    .format(local_path, username, host, remote_path, process_result.stderr.decode('utf-8')))
         elif private_key is not None:
             raise NotImplementedError()
         else:
             raise Exception('At least "password" or "privateKey" must be present.')
-
-        os.mkdir(local_path)
-
-        process_result = subprocess.run(' '.join(command), stderr=subprocess.PIPE, shell=True)
-        if process_result.returncode != 0:
-            raise Exception('Could not mount "{}" from "{}@{}:{}" using password and "sshfs":\n{}'
-                            .format(local_path, username, host, remote_path, process_result.stderr.decode('utf-8')))
 
     @staticmethod
     def receive_directory_validate(access):
