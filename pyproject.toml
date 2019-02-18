@@ -5,7 +5,7 @@ authors = ["Bruno Schilling <Bruno.Schilling@student.htw-berlin.de>", "Christoph
 license = "AGPL-3.0"
 readme = "README.md"
 repository = "https://github.com/curious-containers/red-connector-sshfs"
-homepage = "https://curious-containers.github.io/"
+homepage = "https://www.curious-containers.cc/"
 description = "RED Connector SSHFS is part of the Curious Containers project."
 
 [tool.poetry.dependencies]
