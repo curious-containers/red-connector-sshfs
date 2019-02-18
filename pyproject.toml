@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "red-connector-sshfs"
 version = "0.2"
-authors = ["Bruno Schilling <s0555131@htw-berlin.de>", "Christoph Jansen <Christoph.Jansen@htw-berlin.de>"]
+authors = ["Bruno Schilling <Bruno.Schilling@student.htw-berlin.de>", "Christoph Jansen <Christoph.Jansen@htw-berlin.de>"]
 license = "AGPL-3.0"
 readme = "README.md"
 repository = "https://github.com/curious-containers/red-connector-sshfs"
