@@ -10,12 +10,29 @@ sshfs_access_schema = {
     'properties': {
         'host': {'type': 'string'},
         'port': {'type': 'integer'},
-        'username': {'type': 'string'},
-        'password': {'type': 'string'},
-        'dirName': {'type': 'string'},
+        'auth': {
+            'oneOf': [{
+                'type': 'object',
+                'properties': {
+                    'username': {'type': 'string'},
+                    'password': {'type': 'string'},
+                },
+                'additionalProperties': False,
+                'required': ['username', 'password']
+            }, {
+                'type': 'object',
+                'properties': {
+                    'username': {'type': 'string'},
+                    'privateKey': {'type': 'string'},
+                },
+                'additionalProperties': False,
+                'required': ['username', 'privateKey']
+            }]
+        },
+        'dirPath': {'type': 'string'},
     },
     'additionalProperties': False,
-    'required': ['host', 'username', 'dirName']
+    'required': ['host', 'auth', 'dirPath']
 }
 
 
@@ -35,6 +52,7 @@ def _create_password_command(username, host, port, local_path, remote_path, conf
     return [
         sshfs_executable, remote_connection, local_path,
         '-o', 'password_stdin',
+        '-o', 'ro',
         '-F', configfile_path,
         '-p', str(port)
     ]
@@ -82,15 +100,15 @@ class Sshfs:
         :raise Exception: If neither privateKey nor password is given in the access dictionary
         """
         host = access['host']
-        username = access['username']
-        remote_path = access['dirName']
+        port = access.get('port', DEFAULT_PORT)
+        remote_path = access['dirPath']
+        auth = access['auth']
+        username = auth['username']
+
         local_path = internal['path']
 
-        port = access.get('port', DEFAULT_PORT)
-        password = access.get('password')
-        private_key = access.get('privateKey')
-
-        if password is not None:
+        if 'password' in auth:
+            password = auth['password']
             with tempfile.NamedTemporaryFile('w') as temp_configfile:
                 temp_configfile.write('StrictHostKeyChecking=no')
                 temp_configfile.flush()
@@ -99,18 +117,17 @@ class Sshfs:
 
                 os.mkdir(local_path)
 
-                process_result = subprocess.run(command,
-                                                input=password.encode('utf-8'),
-                                                stderr=subprocess.PIPE,
-                                                shell=True)
+                process_result = subprocess.run(
+                    command, input=password.encode('utf-8'), stderr=subprocess.PIPE, shell=True
+                )
 
                 if process_result.returncode != 0:
-                    raise Exception('Could not mount "{}" from "{}@{}:{}" using password and "sshfs":\n{}'
-                                    .format(local_path, username, host, remote_path, process_result.stderr.decode('utf-8')))
-        elif private_key is not None:
-            raise NotImplementedError()
+                    raise Exception(
+                        'Could not mount "{}" from "{}@{}:{}" using password and "sshfs":\n{}'.format(
+                            local_path, username, host, remote_path, process_result.stderr.decode('utf-8'))
+                    )
         else:
-            raise Exception('At least "password" or "privateKey" must be present.')
+            raise NotImplementedError()
 
     @staticmethod
     def receive_directory_validate(access):
@@ -121,8 +138,9 @@ class Sshfs:
                 raise Exception(e.context)
             else:
                 raise Exception(str(e))
-        if ('password' not in access) and ('privateKey' not in access):
-            raise Exception('At least "password" or "privateKey" must be present.')
+
+        if 'privateKey' in access['auth']:
+            raise NotImplementedError('Authentication via privateKey is not yet implemented')
 
         _ = _find_executables()
 
